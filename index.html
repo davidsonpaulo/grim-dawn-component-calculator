@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grim Dawn Component Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Grim Dawn Component Calculator</h1>
+    
+    <!-- Character Inputs -->
+    <section>
+      <h2>Character Info</h2>
+      <label>
+        Character Level:
+        <input type="number" id="charLevel" min="1" value="20">
+      </label>
+    </section>
+    
+<form id="resistanceForm">
+  <label for="template">Equipment Template:</label>
+  <select id="template" name="template">
+    <option value="one-hand-shield">One-hand Weapon + Shield</option>
+    <option value="one-hand-offhand">One-hand Weapon + Off-hand</option>
+    <option value="two-hand">Two-hand Weapon</option>
+  </select>
+  <br>
+</form>
+
+    <!-- Resistances Inputs -->
+    <section>
+      <h2>Current Resistances (%)</h2>
+      <div class="resistances">
+        <label>Fire: <input type="number" id="fire" min="0" max="100" value="0"></label>
+        <label>Cold: <input type="number" id="cold" min="0" max="100" value="0"></label>
+        <label>Lightning: <input type="number" id="lightning" min="0" max="100" value="0"></label>
+        <label>Poison & Acid: <input type="number" id="poison" min="0" max="100" value="0"></label>
+        <label>Piercing: <input type="number" id="piercing" min="0" max="100" value="0"></label>
+        <label>Bleeding: <input type="number" id="bleeding" min="0" max="100" value="0"></label>
+        <label>Vitality: <input type="number" id="vitality" min="0" max="100" value="0"></label>
+        <label>Aether: <input type="number" id="aether" min="0" max="100" value="0"></label>
+        <label>Chaos: <input type="number" id="chaos" min="0" max="100" value="0"></label>
+      </div>
+    </section>
+    
+    <!-- Location Locks -->
+    <section>
+      <h2>Unavailable Slots</h2>
+      <div class="locations">
+        <label><input type="checkbox" id="lock-head"> Head</label>
+        <label><input type="checkbox" id="lock-amulet"> Amulet</label>
+        <label><input type="checkbox" id="lock-ring1"> Ring 1</label>
+        <label><input type="checkbox" id="lock-ring2"> Ring 2</label>
+        <label><input type="checkbox" id="lock-weapon"> Weapon</label>
+        <label><input type="checkbox" id="lock-shield"> Shield</label>
+        <label><input type="checkbox" id="lock-offhand"> Off-Hand</label>
+        <label><input type="checkbox" id="lock-chest"> Chest</label>
+        <label><input type="checkbox" id="lock-shoulder"> Shoulder</label>
+        <label><input type="checkbox" id="lock-foot"> Foot</label>
+        <label><input type="checkbox" id="lock-belt"> Belt</label>
+        <label><input type="checkbox" id="lock-legs"> Legs</label>
+        <label><input type="checkbox" id="lock-medal"> Medal</label>
+      </div>
+    </section>
+    
+    <!-- Calculate Button -->
+    <button onclick="calculateCombinations()">Calculate Optimal Components</button>
+    
+    <!-- Results -->
+    <section id="results">
+      <h2>Results</h2>
+      <div id="combinations"></div>
+    </section>
+  </div>
+  
+  <script src="components.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
