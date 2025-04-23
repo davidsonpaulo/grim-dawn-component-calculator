@@ -271,29 +271,50 @@ function calculateCombinations() {
     // Calculate priority score for each component
     const componentsWithPriority = validComponents.map(comp => {
       let priorityScore = 0;
-      const scoreBreakdown = {}; // Track per-resistance contributions
+      let totalResistances = 0;
+      let provided = 0;
+      const scoreBreakdown = {}; // Track contributions
+
+      // Calculate totalResistances (all resistances, elemental x3)
+      for (const res in comp.resistances) {
+        if (res === 'elemental') {
+          totalResistances += comp.resistances[res] * 3; // Counts for fire, cold, lightning
+        } else {
+          totalResistances += comp.resistances[res];
+        }
+      }
+
+      // Calculate provided (sum of needed resistances)
       for (const res in comp.resistances) {
         if (res === 'elemental') {
           const elementalResistances = ['fire', 'cold', 'lightning'];
           elementalResistances.forEach(elemRes => {
             const needed = missingResistances[elemRes];
-            const provided = Math.min(needed, comp.resistances[res]);
-            const resScore = (needed / 80) * (provided / 80);
-            priorityScore += resScore;
-            scoreBreakdown[elemRes] = { needed, provided, resScore };
+            const resProvided = Math.min(needed, comp.resistances[res]);
+            provided += resProvided;
+            scoreBreakdown[elemRes] = { needed, provided: resProvided };
           });
         } else {
           const needed = missingResistances[res];
-          const provided = Math.min(needed, comp.resistances[res]);
-          const resScore = (needed / 80) * (provided / 80);
-          priorityScore += resScore;
-          scoreBreakdown[res] = { needed, provided, resScore };
+          const resProvided = Math.min(needed, comp.resistances[res]);
+          provided += resProvided;
+          scoreBreakdown[res] = { needed, provided: resProvided };
         }
       }
+
+      // Calculate priorityScore
+      if (provided > 0) {
+        priorityScore = provided * (1 - 1 / totalResistances);
+        scoreBreakdown.score = { provided, totalResistances, priorityScore };
+      } else {
+        scoreBreakdown.score = { provided, totalResistances, priorityScore: 0 };
+      }
+
       const validLocations = comp.locations.filter(slot => {
         const targetSlot = slot === 'ring' ? (usedSlots.has('ring1') ? 'ring2' : 'ring1') : slot;
         return availableSlots.includes(targetSlot);
       });
+
       // Calculate the minimum component count for tiebreaker
       let minComponentCount = Infinity;
       validLocations.forEach(slot => {
@@ -302,7 +323,8 @@ function calculateCombinations() {
           minComponentCount = Math.min(minComponentCount, slotComponentCounts[targetSlot] || 0);
         }
       });
-      return { ...comp, priorityScore, validLocations, scoreBreakdown, minComponentCount };
+
+      return { ...comp, priorityScore, validLocations, scoreBreakdown, minComponentCount, totalResistances };
     });
 
     // Filter out components with zero priority or no valid locations
@@ -313,6 +335,7 @@ function calculateCombinations() {
     console.log(`Iteration ${iteration}: Contributing components:`, contributingComponents.map(c => ({
       name: c.name,
       priorityScore: c.priorityScore,
+      totalResistances: c.totalResistances,
       validLocations: c.validLocations,
       minComponentCount: c.minComponentCount,
       scoreBreakdown: c.scoreBreakdown
@@ -335,11 +358,11 @@ function calculateCombinations() {
     const bestComponent = contributingComponents[0];
 
     // Log priority scores for key components
-    console.log(`Iteration ${iteration}: Top component: ${bestComponent.name} (Score: ${bestComponent.priorityScore}, Min Component Count: ${bestComponent.minComponentCount})`);
-    ['Antivenom Salve', 'Titan Plating', 'Sacred Plating', 'Imbued Silver'].forEach(name => {
+    console.log(`Iteration ${iteration}: Top component: ${bestComponent.name} (Score: ${bestComponent.priorityScore}, Total Resistances: ${bestComponent.totalResistances}, Min Component Count: ${bestComponent.minComponentCount})`);
+    ['Antivenom Salve', 'Titan Plating', 'Sacred Plating', 'Imbued Silver', 'Ugdenbog Leather'].forEach(name => {
       const comp = componentsWithPriority.find(c => c.name === name);
       if (comp) {
-        console.log(`Iteration ${iteration}: ${name} Score: ${comp.priorityScore}, Locations: ${comp.validLocations}, Min Component Count: ${comp.minComponentCount}, Breakdown:`, comp.scoreBreakdown);
+        console.log(`Iteration ${iteration}: ${name} Score: ${comp.priorityScore}, Total Resistances: ${comp.totalResistances}, Locations: ${comp.validLocations}, Min Component Count: ${comp.minComponentCount}, Breakdown:`, comp.scoreBreakdown);
       }
     });
 
@@ -402,32 +425,32 @@ function calculateCombinations() {
   }
 
   // Generate output
-if (output) {
-  output.innerHTML = `
-    <h2>Optimal Component Combination (Template: ${template})</h2>
-    <p>Total Effective Resistance: ${totalEffective.toFixed(2)}%</p>
-    <ul>
-      ${selectedComponents.map(comp => `
-        <li>
-          <span class="component-name">${comp.name}</span>
-          (<span class="component-location">${comp.assignedSlot}</span>):
-          <span class="component-details">${Object.entries(comp.resistances)
-            .map(([res, val]) => `${res}: +${val}%`)
-            .join(', ')}</span>
-        </li>
-      `).join('')}
-    </ul>
-    <h3>Final Resistances</h3>
-    <ul>
-      ${Object.entries(finalResistances)
-        .map(([res, val]) => `<li>${res}: ${val}%</li>`)
-        .join('')}
-    </ul>
-  `;
-} else {
-  console.error('Output element not found');
-}
+  if (output) {
+    output.innerHTML = `
+      <h2>Optimal Component Combination (Template: ${template})</h2>
+      <p>Total Effective Resistance: ${totalEffective.toFixed(2)}%</p>
+      <ul>
+        ${selectedComponents.map(comp => `
+          <li>
+            <span class="component-name">${comp.name}</span>
+            (<span class="component-location">${comp.assignedSlot}</span>):
+            <span class="component-details">${Object.entries(comp.resistances)
+              .map(([res, val]) => `${res}: +${val}%`)
+              .join(', ')}</span>
+          </li>
+        `).join('')}
+      </ul>
+      <h3>Final Resistances</h3>
+      <ul>
+        ${Object.entries(finalResistances)
+          .map(([res, val]) => `<li>${res}: ${val}%</li>`)
+          .join('')}
+      </ul>
+    `;
+  } else {
+    console.error('Output element not found');
+  }
 
-// Save state to localStorage
-saveState();
+  // Save state to localStorage
+  saveState();
 }
